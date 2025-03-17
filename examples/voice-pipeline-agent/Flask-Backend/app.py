@@ -9,7 +9,7 @@ def estimate_audio_length(text, words_per_second=2):
     words = text.split()
     return len(words) / words_per_second
 
-#Triming the content if it exceeds more than 60 seconds
+#Triming the content if it exceeds more than  60 seconds
 def trim_text(text, max_duration=60, words_per_second=2, placeholder="..."):
     words = text.split()
     max_words = max_duration * words_per_second
@@ -19,7 +19,6 @@ def trim_text(text, max_duration=60, words_per_second=2, placeholder="..."):
 
     keep_words = max_words // 2  # Half of the words to keep from each side
     return ' '.join(words[:keep_words]) + f" {placeholder} " + ' '.join(words[-keep_words:])
-
 
 
 

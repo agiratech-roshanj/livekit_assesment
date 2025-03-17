@@ -9,14 +9,25 @@ from livekit.agents import (
     JobProcess,
     WorkerOptions,
     cli,
-    llm,
+    llm as lm,
     metrics,
 )
 from livekit.agents.pipeline import VoicePipelineAgent
-from livekit.plugins import deepgram, openai, silero
+from livekit.plugins import cartesia, deepgram, openai, silero
+
+from livekit.plugins.openai import stt
+
+from livekit.plugins.openai import llm
+
 
 load_dotenv()
 logger = logging.getLogger("voice-assistant")
+
+groq_llm = llm.LLM.with_groq(
+  model="llama3-8b-8192",
+  temperature=0.1,
+)
+
 
 
 def prewarm(proc: JobProcess):
@@ -24,7 +35,7 @@ def prewarm(proc: JobProcess):
 
 
 async def entrypoint(ctx: JobContext):
-    initial_ctx = llm.ChatContext().append(
+    initial_ctx = lm.ChatContext().append(
         role="system",
         text=(
             "You are a voice assistant created by LiveKit. Your interface with users will be voice. "
@@ -34,7 +45,7 @@ async def entrypoint(ctx: JobContext):
     #callback use to trim the content , if it exceeds more than 60 seconds
     def validate_text(text: str):
         response = requests.post(
-            'https://101a-183-82-34-206.ngrok-free.app/validate-audio-length',
+            'https://9945-183-82-34-206.ngrok-free.app/validate-audio-length',
             json={'text': text}
         )
         
@@ -55,8 +66,8 @@ async def entrypoint(ctx: JobContext):
     agent = VoicePipelineAgent(
         vad=ctx.proc.userdata["vad"],
         stt=deepgram.STT(model=dg_model),
-        llm=openai.LLM(),
-        tts=openai.TTS(),
+        llm=groq_llm,
+        tts=cartesia.TTS(),
         chat_ctx=initial_ctx,
         before_tts_cb=lambda assistant, text: text,  #to call only once
     )
